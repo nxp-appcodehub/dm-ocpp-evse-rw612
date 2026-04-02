@@ -200,7 +200,7 @@ void sys_mark_tcpip_thread(void);
 /* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active
    timeouts. */
 #ifndef MEMP_NUM_SYS_TIMEOUT
-#define MEMP_NUM_SYS_TIMEOUT 10
+#define MEMP_NUM_SYS_TIMEOUT 15
 #endif
 /* MEMP_NUM_REASS_DATA: The number of whole IP packets
    queued for reassembly. */
