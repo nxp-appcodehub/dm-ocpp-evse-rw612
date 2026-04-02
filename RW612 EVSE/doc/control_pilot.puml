@@ -1,0 +1,27 @@
+@startuml
+!theme plain
+title Control Pilot Synchronized ADC Sampling
+
+participant "CTIMER3" as TIMER
+participant "Match 1\n(ADC Trigger)" as M1
+participant "ADC" as ADC
+participant "CP Signal" as CP
+
+== PWM Cycle ==
+TIMER -> CP: PWM High (Start)
+note right of CP: Voltage depends on\nvehicle state:\n12V, 9V, 6V, 3V
+
+TIMER -> TIMER: Calculate optimal\nsampling point
+note left of TIMER: Sample at middle of\nhigh or low pulse\nfor stable reading
+
+TIMER -> M1: Match 1 triggers
+M1 -> ADC: Start conversion
+ADC -> ADC: Sample CP voltage
+ADC -> ADC: 16-bit conversion
+ADC --> ADC: Generate interrupt
+note right of ADC: Store value in\ns_u16AdcCPRawValue
+
+TIMER -> CP: PWM Low
+note right of CP: Continue PWM cycle
+
+@enduml

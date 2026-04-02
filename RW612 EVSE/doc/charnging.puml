@@ -1,0 +1,75 @@
+@startuml
+!theme plain
+title EVSE J1772 State Machine
+skinparam state {
+    BackgroundColor<<pwm>> lightblue
+    BackgroundColor<<charging>> lightgreen
+    BackgroundColor<<error>> pink
+    BorderColor black
+    ArrowColor black
+}
+
+' Define states in grid positions
+state "STATE_A\nStandby\n(PWM 100%)" as STATE_A
+state "STATE_A2\nStandby PWM\n(Variable)" as STATE_A2 <<pwm>>
+
+state "STATE_B\nVehicle Detected\n(PWM 100%)" as STATE_B
+state "STATE_B2\nVehicle Detected PWM\n(Variable)" as STATE_B2 <<pwm>>
+
+state "STATE_C\nReady\n(PWM 100%)" as STATE_C
+state "STATE_C2\nCharging\n(PWM Variable)" as STATE_C2 <<charging>>
+
+state "STATE_D\nVentilation\n(PWM 100%)" as STATE_D
+state "STATE_D2\nVentilation Charging\n(PWM Variable)" as STATE_D2 <<charging>>
+
+state "STATE_E/F\nError States" as STATE_EF <<error>>
+
+' Layout
+[*] -down-> STATE_A
+
+' Column 1 -> Column 2 (100% PWM -> Variable PWM)
+STATE_A -right-> STATE_A2 : PWM\nActivation
+STATE_B -right-> STATE_B2 : ready_to_charge &&\npwm==100%
+STATE_D -right-> STATE_D2 : ready_to_charge &&\n!over_current
+
+' Column 2 -> Column 1 (Variable PWM -> 100% PWM)
+STATE_A2 -left-> STATE_A : cp==A &&\npwm<MIN
+STATE_B2 -left-> STATE_B : !ready_to_charge
+STATE_C2 -left-> STATE_C : !ready_to_charge ||\nover_current
+STATE_D2 -left-> STATE_D : !ready_to_charge ||\nover_current
+
+' Vertical transitions in column 1
+STATE_A -down-> STATE_B : cp==B
+STATE_B -down-> STATE_C : [From B2]\nvia C2
+STATE_C -down-> STATE_D : cp==D
+STATE_B -up-> STATE_A : cp==A
+STATE_C -up-> STATE_B : cp==B
+STATE_D -up-> STATE_C : cp==C
+
+' Vertical transitions in column 2
+STATE_A2 -down-> STATE_B2 : cp==B
+STATE_B2 -down-> STATE_C2 : cp==C
+STATE_B2 -down-> STATE_D2 : cp==D
+STATE_C2 -down-> STATE_D2 : cp==D
+STATE_B2 -up-> STATE_A2 : cp==A
+STATE_C2 -up-> STATE_B2 : cp==B
+STATE_D2 -up-> STATE_C2 : cp==C
+
+' Error transitions
+STATE_C2 -right-> STATE_EF : cp==E or F
+STATE_D2 -right-> STATE_EF : cp==E or F
+
+legend right
+  **Control Pilot (cp) States:**
+  A = No Vehicle (12V)
+  B = Vehicle Connected (9V)
+  C = Ready to Charge (6V)
+  D = Ventilation Required (3V)
+  E/F = Error Conditions
+  
+  **PWM Duty Cycle:**
+  100% = 12V DC (No current limit)
+  Variable = Current limit signal (6-80A)
+endlegend
+
+@enduml

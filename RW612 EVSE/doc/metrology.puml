@@ -1,0 +1,45 @@
+@startuml
+!theme plain
+title AFE SPI DMA IRQ and Metrology Task Interaction
+
+participant "DMA IRQ\n(AFE_SPIRxDMACallback)" as DMA_IRQ
+participant "metrology_task" as MET_TASK
+
+note over MET_TASK: Waiting on EventGroup\n(xEventGroupWaitBits)
+
+DMA_IRQ -> DMA_IRQ: SPI Transfer Complete\n(transferDone = true)
+
+DMA_IRQ -> DMA_IRQ: Process AFE data\n(6 channels: U1,U2,U3,I1,I2,I3)
+
+DMA_IRQ -> DMA_IRQ: CRC Check
+
+alt CRC Valid
+    DMA_IRQ -> DMA_IRQ: Metering_SampleAdd()\n(Store samples in buffer)
+    
+    alt Buffer Full (current_sample == buf_samples)
+        DMA_IRQ -> DMA_IRQ: Metering_SampleFinish()\n(Switch buffers: rd_buffer = wr_buffer)
+        DMA_IRQ -> DMA_IRQ: Metering_StartProcesing()
+        DMA_IRQ -> DMA_IRQ: EVSE_Metrology_SetEvent(Metrology_DataRCV)
+        
+        note over DMA_IRQ: xEventGroupSetBitsFromISR()\n(Set event bit from ISR)
+        
+        DMA_IRQ -[#blue]-> MET_TASK: <color:blue>**Wake up via EventGroup**</color>
+        
+        activate MET_TASK #lightgreen
+        MET_TASK -> MET_TASK: metrology_process()\n(FFT processing on rd_buffer)
+        MET_TASK -> MET_TASK: METERLIBFFT3PH_CalcMain()
+        MET_TASK -> MET_TASK: Calculate:\n- URMS, IRMS\n- P, Q, S, PF\n- THD, harmonics
+        MET_TASK -> MET_TASK: Update energy counters\n(Wh, VARh)
+        MET_TASK -> MET_TASK: buffer_inUse[rd_buffer] = 0
+        deactivate MET_TASK
+        
+        note over MET_TASK: Back to waiting on EventGroup\n(xEventGroupWaitBits)
+    else Buffer Not Full
+        note over DMA_IRQ: Continue collecting samples\n(current_sample++)
+    end
+else CRC Error
+    DMA_IRQ -> DMA_IRQ: CRC_err_count++
+    DMA_IRQ -> DMA_IRQ: Metering_SampleReset()\n(current_sample = 0, drop cycle)
+end
+
+@enduml
