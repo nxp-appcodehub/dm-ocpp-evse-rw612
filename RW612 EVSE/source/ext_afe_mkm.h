@@ -37,8 +37,8 @@ extern "C" {
 
 #if AFE_MODE == 1
 
-#define SAMPLE_RATE			4000U	/* External AFE is pre-configured to generate
-									   4000 samples per second at a constant rate. */
+#define SAMPLE_RATE			3200U	/* External AFE is pre-configured to generate
+									   3200 samples per second at a constant rate. */
 #define DEFAULT_LINE_FREQ	50U		/* Typically AC line frequency is 50 Hertz */
 /* There will be AFE_SAMPLES/DEFAULT_LINE_FREQ = 64 samples captured by external AFE for each
    channel. FFT algorithm will need these 64 samples buffered for a cycle to

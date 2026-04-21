@@ -53,7 +53,7 @@ typedef struct {
 #define MET_SAVE_ENERGY_BASE_TASK_FREQ		(4*5*60)
 #define MET_SAVE_ENERGY_NEW_TASK_FREQ		1U
 
-#define ADC_INP_SAMPLES 95U /* accurate number of input samples */
+#define ADC_INP_SAMPLES AFE_INP_SAMPLES /* accurate number of input samples */
 #define INP_SAMPLES MAX(FFT_SAMPLES, ADC_INP_SAMPLES)
 /* Frequency conversion macros                                                */
 #define TMRPRCLK        (double)(150.0e6/64.0)

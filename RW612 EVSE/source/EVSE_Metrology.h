@@ -57,18 +57,75 @@ typedef struct metrology_data{
 	tENERGY_REG energy_cnt;
 } metrology_data_t;
 
+/*!
+ * @brief Resets the metering sample buffer.
+ */
 void Metering_SampleReset(void);
+
+/*!
+ * @brief Adds voltage and current samples for three phases to the metering buffer.
+ *
+ * @param u1 Voltage sample for phase 1
+ * @param u2 Voltage sample for phase 2
+ * @param u3 Voltage sample for phase 3
+ * @param i1 Current sample for phase 1
+ * @param i2 Current sample for phase 2
+ * @param i3 Current sample for phase 3
+ * @return Sample count or status value
+ */
 uint32_t Metering_SampleAdd(frac24 u1, frac24 u2, frac24 u3, frac24 i1, frac24 i2, frac24 i3);
+
+/*!
+ * @brief Starts the metering data processing. This will trigger the metrology process to run.
+ */
 void Metering_StartProcessing(void);
+
+/*!
+ * @brief Finalizes the metering sample collection. This will lock the buffer and prepare it for processing.
+ * Call the Metering_StartProcessing() function after this to process the collected samples.
+ */
 void Metering_SampleFinish(void);
 
+/*!
+ * @brief Reads the current RMS values for all phases.
+ *
+ * @return Phase data structure containing current measurements
+ */
 const phase_data_t Metrology_ReadCurrent();
 
+/*!
+ * @brief Reads the voltage RMS values for all phases.
+ *
+ * @return Phase data structure containing voltage measurements
+ */
 const phase_data_t Metrology_ReadVoltage();
+
+/*!
+ * @brief Reads the active power values for all phases.
+ *
+ * @return Phase data structure containing active power measurements
+ */
 const phase_data_t Metrology_ReadActivePower();
+
+/*!
+ * @brief Reads the accumulated energy register values.
+ *
+ * @return Energy register structure
+ */
 const tENERGY_REG Metrology_ReadEnergy();
 
+/*!
+ * @brief Initializes the EVSE metrology subsystem.
+ *
+ * @return true if initialization successful, false otherwise
+ */
+
 bool EVSE_MetrologyInit();
+
+/*!
+ * @brief Deinitializes the EVSE metrology subsystem.
+ */
 void EVSE_MetrologyDeinit();
+
 
 #endif /* EVSE_METROLOGY_H */
